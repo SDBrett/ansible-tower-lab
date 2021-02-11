@@ -2,14 +2,14 @@
 - name: provision tower ec2 instances
   ec2_instance:
       key_name: "{{ ssh_key_name }}"
-      group: "{{ sec_group.group_name }}"
+      #group: "{{ sec_group.group_name }}"
       instance_type: "{{ instance_type }}"
-      image: "{{ ami_id }}"
+      image_id: "{{ ami_id }}"
       wait: true
-      exact_count: 3
-      count_tag: tower
+      #exact_count: 3
+      #count_tag: tower
       region: "{{ region }}"
-      instance_tags:
+      tags:
         role: automate
   register: automate
 

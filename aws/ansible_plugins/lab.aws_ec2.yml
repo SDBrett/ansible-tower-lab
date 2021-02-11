@@ -8,3 +8,9 @@ boto_profile: admin
 # Populate inventory with instances in these regions
 regions:
   - "ap-southeast-2"
+
+keyed_groups:
+- key: tags
+  prefix: tag
+- key: tags.service
+  seperator: ''
