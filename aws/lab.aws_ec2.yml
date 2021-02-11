@@ -1,0 +1,10 @@
+plugin: amazon.aws.aws_ec2
+cache: yes
+cache_plugin: ansible.builtin.jsonfile
+cache_timeout: 7200
+cache_connection: /tmp/aws_inventory
+cache_prefix: aws_ec2
+boto_profile: admin
+# Populate inventory with instances in these regions
+regions:
+  - "ap-southeast-2"

@@ -1,0 +1,43 @@
+- name: create a VPC for tower
+  amazon.aws.ec2_vpc_net:
+    name: tower
+    cidr_block: 10.10.0.0/16
+    region: "{{ region }}"
+    tags:
+      service: tower
+    tenancy: dedicated
+    state: "{{ state }}"
+  register: vpc
+
+- name: Create subnet tower subnet
+  amazon.aws.ec2_vpc_subnet:
+    state: "{{ state }}"
+    vpc_id: "{{ vpc.vpc.id }}"
+    cidr: 10.10.0.0/24
+    tags:
+      Name: tower
+      service: tower
+  register: tower_subnet
+
+- name: create group
+  amazon.aws.ec2_group:
+    name: tower
+    state: "{{ state }}"
+    description: "Ansible tower security group"
+    vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
+    tags: {
+      service: tower
+    }
+    rules:
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all on port 443
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 0.0.0.0/0
+        rule_desc: allow all ssh
+  register: sec_group

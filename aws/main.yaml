@@ -5,8 +5,8 @@
   tasks:
     - name: deploy ec2 instances
       include_role:
-        name: tower
-      when: cleanup == "false"
+        name: common
+      when: state == "present"
 
 - hosts: localhost
   vars_files:
@@ -15,4 +15,4 @@
     - name: terminate ec2 instances
       include_role:
         name: cleanup
-      when: cleanup == "true"
+      when: state == "absent"

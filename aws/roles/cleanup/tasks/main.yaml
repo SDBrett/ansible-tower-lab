@@ -1,16 +1,62 @@
-- name: Terminate Instances
-  ec2_instance_facts:
+- name: get ec2 facts
+  ec2_instance_info:
     region: "{{ region }}"
   register: ec2_info
 
-- name: displaying output
-  debug: msg="{{ item.instance_id }}"
-  with_items: "{{ec2_info.instances}}"
+- name: get vpc info
+  amazon.aws.ec2_vpc_net_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: vpc_info
 
-- name: terminate
-  ec2:
+- name: get subnet info
+  amazon.aws.ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: subnet_info
+
+- name: get group info
+  amazon.aws.ec2_group_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: group_info
+
+- name: debug group
+  debug:
+    msg: "{{ group_info }}"
+
+- name: terminate ec2 instances
+  ec2_instance:
     instance_ids: "{{ item.instance_id }}"
     region: "{{ region }}"
     state: absent
     wait: yes
-  with_items: "{{ec2_info.instances}}"
+  with_items: "{{ ec2_info.instances }}"
+
+- name: terminate subnets
+  amazon.aws.ec2_vpc_subnet:
+    region: "{{ region }}"
+    vpc_id:  "{{ item.vpc_id }}"
+    cidr: "{{ item.cidr_block }}"
+    state: absent
+    wait: yes
+  with_items: "{{ subnet_info.subnets }}"
+
+- name: remove groups
+  amazon.aws.ec2_group:
+    state: "{{ state }}"
+    group_id: "{{ item.group_id }}"
+    vpc_id: "{{ item.vpc_id }}"
+    region: "{{ region }}" 
+  with_items: "{{ group_info.security_groups }}"
+
+- name: terminate vpc
+  amazon.aws.ec2_vpc_net:
+    region: "{{ region }}"
+    name: tower
+    cidr_block: "{{ item.cidr_block }}"
+    state: absent
+  with_items: "{{ vpc_info.vpcs }}"
