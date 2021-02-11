@@ -1,0 +1,4 @@
+instance_type: t2.micro
+ssh_key_name: tower
+ami_id: "ami-044c46b1952ad5861"
+instance_name: "automate"
