@@ -10,10 +10,20 @@
       count_tag: tower
       region: "{{ region }}"
       instance_tags:
-        Name: tower
         role: tower
-  register: ec2
+  register: tower
+
+- name: tag instances
+  no_log: true
+  ec2_tag:
+    region: "{{ region }}"
+    resource: "{{ item.0.id }}"
+    tags:
+        Name: "{{ instance_name }}-{{ item.1.msg }}"
+  with_together:
+    - "{{ automate.instances }}"
+    - "{{ sequence.results }}"
 
 - name: Add all instance public IPs to host group
-  add_host: hostname={{ item.public_ip }} groups=ec2hosts
-  loop: "{{ ec2.instances }}"
+  add_host: hostname={{ item.public_ip }} groups=tower
+  loop: "{{ tower.instances }}"
