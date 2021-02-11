@@ -1,0 +1,19 @@
+
+- name: providing tower ec2
+  ec2:
+      key_name: "{{ ssh_key_name }}"
+      #group: tower
+      instance_type: "{{ instance_type }}"
+      image: "{{ ami_id }}"
+      wait: true
+      exact_count: 3
+      count_tag: tower
+      region: "{{ region }}"
+      instance_tags:
+        Name: tower
+        role: tower
+  register: ec2
+
+#- name: Add all instance public IPs to host group
+#  add_host: hostname={{ item.public_ip }} groups=ec2hosts
+#  loop: "{{ ec2.instances }}"
