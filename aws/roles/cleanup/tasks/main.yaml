@@ -53,6 +53,11 @@
     region: "{{ region }}" 
   with_items: "{{ group_info.security_groups }}"
 
+- name: Wait for group and subnet removal
+  wait_for:
+    timeout: 120
+  delegate_to: localhost
+
 - name: terminate vpc
   amazon.aws.ec2_vpc_net:
     region: "{{ region }}"
