@@ -1,3 +1,10 @@
+- name: get vpc info
+  amazon.aws.ec2_vpc_net_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: vpc_info
+
 ## EC2 cleanup
 - name: get ec2 facts
   ec2_instance_info:
@@ -16,21 +23,11 @@
 
 ## IGW cleanup
 
-- name: Get IGW facts
-  community.aws.ec2_vpc_igw_info:
-    region: "{{ region }}"
-    filters:
-      "tag:service": "tower"
-  register: igw_info
-
 - name: remove igw
   community.aws.ec2_vpc_igw:
     vpc_id: "{{ item.vpc_id }}"
     state: "{{ state }}"
-    tags:
-      Name: tower-igw
-      service: tower
-  with_items: "{{ igw_info.internet_gateways }}"
+  with_items: "{{ vpc_info.vpcs }}"
 
 ## Subnet cleanup
 
@@ -89,12 +86,6 @@
 
 
 ## VPC Cleanup
-- name: get vpc info
-  amazon.aws.ec2_vpc_net_info:
-    region: "{{ region }}"
-    filters:
-      "tag:service": tower
-  register: vpc_info
 
 - name: terminate vpc
   amazon.aws.ec2_vpc_net:
