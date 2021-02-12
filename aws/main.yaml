@@ -3,6 +3,16 @@
   vars_files:
     - vars/main.yaml
   tasks:
+    - name: deploy common infra
+      import_role:
+        name: common
+      when: 
+      - state == "present"
+#    - name: deploy tower rds
+#      import_role:
+#        name: rds
+#      when: 
+#      - state == "present"
     - name: deploy tower ec2 instances
       import_role:
         name: tower

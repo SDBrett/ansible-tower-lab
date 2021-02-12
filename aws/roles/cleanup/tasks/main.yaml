@@ -1,32 +1,10 @@
+## EC2 cleanup
 - name: get ec2 facts
   ec2_instance_info:
+    filters:
+     "tag:app": tower
     region: "{{ region }}"
   register: ec2_info
-
-- name: get vpc info
-  amazon.aws.ec2_vpc_net_info:
-    region: "{{ region }}"
-    filters:
-      "tag:service": tower
-  register: vpc_info
-
-- name: get subnet info
-  amazon.aws.ec2_vpc_subnet_info:
-    region: "{{ region }}"
-    filters:
-      "tag:service": tower
-  register: subnet_info
-
-- name: get group info
-  amazon.aws.ec2_group_info:
-    region: "{{ region }}"
-    filters:
-      "tag:service": tower
-  register: group_info
-
-- name: debug group
-  debug:
-    msg: "{{ group_info }}"
 
 - name: terminate ec2 instances
   ec2_instance:
@@ -35,6 +13,33 @@
     state: absent
     wait: yes
   with_items: "{{ ec2_info.instances }}"
+
+## IGW cleanup
+
+- name: Get IGW facts
+  community.aws.ec2_vpc_igw_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": "tower"
+  register: igw_info
+
+- name: remove igw
+  community.aws.ec2_vpc_igw:
+    vpc_id: "{{ item.vpc_id }}"
+    state: "{{ state }}"
+    tags:
+      Name: tower-igw
+      service: tower
+  with_items: "{{ igw_info.internet_gateways }}"
+
+## Subnet cleanup
+
+- name: get subnet info
+  amazon.aws.ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: subnet_info
 
 - name: terminate subnets
   amazon.aws.ec2_vpc_subnet:
@@ -45,6 +50,25 @@
     wait: yes
   with_items: "{{ subnet_info.subnets }}"
 
+- name: Wait until subnets are removed
+  amazon.aws.ec2_vpc_subnet_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: subnets_remaining
+  until: subnets_remaining.subnets | length < 1
+  retries: 5
+  delay: 10
+
+  ## Group Cleanup
+
+- name: get group info
+  amazon.aws.ec2_group_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: group_info
+
 - name: remove groups
   amazon.aws.ec2_group:
     state: "{{ state }}"
@@ -53,10 +77,24 @@
     region: "{{ region }}" 
   with_items: "{{ group_info.security_groups }}"
 
-- name: Wait for group and subnet removal
-  wait_for:
-    timeout: 120
-  delegate_to: localhost
+- name: wait for groups to be removed
+  amazon.aws.ec2_group_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: groups_remaining
+  until: groups_remaining.security_groups | length  < 1
+  retries: 5
+  delay: 10
+
+
+## VPC Cleanup
+- name: get vpc info
+  amazon.aws.ec2_vpc_net_info:
+    region: "{{ region }}"
+    filters:
+      "tag:service": tower
+  register: vpc_info
 
 - name: terminate vpc
   amazon.aws.ec2_vpc_net:

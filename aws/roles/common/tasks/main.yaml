@@ -5,19 +5,39 @@
     region: "{{ region }}"
     tags:
       service: tower
-    tenancy: dedicated
     state: "{{ state }}"
   register: vpc
+
+- name: create igw
+  community.aws.ec2_vpc_igw:
+    vpc_id: "{{ vpc.vpc.id }}"
+    state: "{{ state }}"
+    tags:
+      Name: tower-igw
+      service: tower
+  register: igw
 
 - name: Create subnet tower subnet
   amazon.aws.ec2_vpc_subnet:
     state: "{{ state }}"
     vpc_id: "{{ vpc.vpc.id }}"
     cidr: 10.10.0.0/24
+    az: ap-southeast-2a
     tags:
       Name: tower
       service: tower
   register: tower_subnet
+
+- name: Create subnet 2 tower subnet
+  amazon.aws.ec2_vpc_subnet:
+    state: "{{ state }}"
+    vpc_id: "{{ vpc.vpc.id }}"
+    cidr: 10.10.1.0/24
+    az: ap-southeast-2b
+    tags:
+      Name: tower-2c
+      service: tower
+  register: tower_subnet_two
 
 - name: create group
   amazon.aws.ec2_group:

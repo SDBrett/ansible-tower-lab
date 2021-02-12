@@ -1,0 +1,31 @@
+- name: Create subnet groups
+  community.aws.rds_subnet_group:
+    profile: admin
+    description: tower db subnet group
+    region: "{{ region }}"
+    state: "{{ state }}"
+    name: "{{ db_subnet_group_name }}"
+    subnets:
+      - "{{ tower_subnet.subnet.id }}"
+      - "{{ tower_subnet_two.subnet.id }}"
+  register: db_subnet_group
+
+- name: create postgres database
+  community.aws.rds_instance:
+    profile: admin
+    region: "{{ region }}"
+    engine: postgres
+    db_instance_identifier: tower
+    db_name: tower
+    db_instance_class: db.t3.small
+    allocated_storage: 20
+    multi_az: yes
+    port: "{{ postgres_port }}"
+    db_subnet_group_name: "{{ db_subnet_group.subnet_group.db_subnet_group_name }}"
+    master_user_password: "{{ postgres_password }}"
+    master_username: "{{ postgres_user }}"
+    tags:
+      app: tower
+    validate_certs: no
+    vpc_security_group_ids: "{{ sec_group.group_id }}"
+    publicly_accessible: false

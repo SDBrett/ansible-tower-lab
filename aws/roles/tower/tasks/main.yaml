@@ -1,12 +1,15 @@
 
 - name: provision tower ec2 instances
   ec2_instance:
-      key_name: "{{ ssh_key_name }}"
-      instance_type: "{{ instance_type }}"
-      image_id: "{{ ami_id }}"
-      wait: true
-      region: "{{ region }}"
-      tags:
-        role: tower
-      name: tower
+    key_name: "{{ ssh_key_name }}"
+    instance_type: "{{ instance_type }}"
+    image_id: "{{ ami_id }}"
+    wait: true
+    region: "{{ region }}"
+    tags:
+      role: tower
+      app: tower
+    name: tower
+    security_group: "{{ sec_group.group_id }}"
+    vpc_subnet_id: "{{ tower_subnet.subnet.id }}"
   register: tower

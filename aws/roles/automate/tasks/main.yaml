@@ -8,5 +8,8 @@
       region: "{{ region }}"
       tags:
         role: automate
+        app: tower
       name: automate
+      security_group: "{{ sec_group.group_id }}"
+      vpc_subnet_id: "{{ tower_subnet.subnet.id }}"
   register: automate
