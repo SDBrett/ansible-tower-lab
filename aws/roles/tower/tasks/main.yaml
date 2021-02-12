@@ -2,28 +2,11 @@
 - name: provision tower ec2 instances
   ec2_instance:
       key_name: "{{ ssh_key_name }}"
-      #group: "{{ sec_group.group_name }}"
       instance_type: "{{ instance_type }}"
       image_id: "{{ ami_id }}"
       wait: true
-      #exact_count: 3
-      #count_tag: tower
       region: "{{ region }}"
       tags:
         role: tower
+      name: tower
   register: tower
-
-- name: tag instances
-  no_log: true
-  ec2_tag:
-    region: "{{ region }}"
-    resource: "{{ item.0.id }}"
-    tags:
-        Name: "{{ instance_name }}-{{ item.1.msg }}"
-  with_together:
-    - "{{ automate.instances }}"
-    - "{{ sequence.results }}"
-
-- name: Add all instance public IPs to host group
-  add_host: hostname={{ item.public_ip }} groups=tower
-  loop: "{{ tower.instances }}"
