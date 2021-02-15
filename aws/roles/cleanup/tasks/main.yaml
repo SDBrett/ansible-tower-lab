@@ -16,10 +16,26 @@
 - name: remove the DB instance without a final snapshot
   community.aws.rds_instance:
     region: "{{ region }}"
-    id: "{{ database_info.instances[0].dbi_resource_id }}"
+    id: "{{ item.dbi_resource_id }}"
     state: "{{ state }}"
     wait: no
     skip_final_snapshot: True
+  with_items: "{{ database_info.instances }}"
+  when: database_info.instances | length > 0
+
+- name: Pause for 5 minutes for RDS removal
+  pause:
+    minutes: "5"
+  when: database_info.instances | length > 0
+
+- name: Remove subnet groups
+  community.aws.rds_subnet_group:
+    profile: admin
+    description: tower db subnet group
+    region: "{{ region }}"
+    state: "{{ state }}"
+    name: "{{ postgres_rds_subnet_group_name }}"
+
 
 ## EC2 cleanup
 - name: get ec2 facts
@@ -101,6 +117,28 @@
   retries: 5
   delay: 10
 
+## Remove route table
+
+- name: Get route table info
+  community.aws.ec2_vpc_route_table_info:
+    region: "{{ region }}"
+    filters:
+      vpc-id: "{{ item.vpc_id }}"
+  register: route_table_info
+  with_items: "{{ vpc_info.vpcs }}"
+
+- name: debug rt
+  debug:
+    msg: "{{ route_table_info }}"
+
+- name: Remove route table
+  community.aws.ec2_vpc_route_table:
+    vpc_id: "{{ item.vpc_id }}"
+    route_table_id: "{{ item.id }}"
+    region: "{{ region }}"
+    state: "{{ state }}"
+  register: public_route_table
+  with_items: "{{ route_table_info.results[0].route_tables }}"
 
 ## VPC Cleanup
 
