@@ -8,6 +8,7 @@ postgres_rds_port: 5432
 postgres_rds_id: tower
 postgres_rds_name: tower
 postgres_rds_size: db.t3.small
+postgres_rds_subnet_group_name: tower-db
 
 vpc_subnets:
 - vpc_subnet_name: "tower-az1"

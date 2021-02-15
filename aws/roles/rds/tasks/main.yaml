@@ -4,7 +4,7 @@
     description: tower db subnet group
     region: "{{ region }}"
     state: "{{ state }}"
-    name: "{{ db_subnet_group_name }}"
+    name: "{{ postgres_rds_subnet_group_name }}"
     subnets:
       - "{{ tower_subnet.results[0].subnet.id }}"
       - "{{ tower_subnet.results[1].subnet.id }}"
@@ -22,7 +22,7 @@
     allocated_storage: 20
     multi_az: yes
     port: "{{ postgres_rds_port }}"
-    db_subnet_group_name: "{{ db_subnet_group.subnet_group.db_subnet_group_name }}"
+    db_subnet_group_name: "{{ postgres_rds_subnet_group_name }}"
     master_user_password: "{{ postgres_rds_password }}"
     master_username: "{{ postgres_rds_user }}"
     tags:
