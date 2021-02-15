@@ -11,3 +11,7 @@ keyed_groups:
   prefix: tag
 - key: tags.service
   seperator: ''
+
+groups:
+    automate: "'automate' in (tags.service)"
+    tower: "'tower' in (tags.service)"
