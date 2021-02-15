@@ -1,4 +1,3 @@
-
 - name: provision tower ec2 instances
   ec2_instance:
     key_name: "{{ ssh_key_name }}"
@@ -11,5 +10,5 @@
       app: tower
     name: tower
     security_group: "{{ sec_group.group_id }}"
-    vpc_subnet_id: "{{ tower_subnet.subnet.id }}"
+    vpc_subnet_id: "{{ tower_subnet.results[0].subnet.id }}"
   register: tower

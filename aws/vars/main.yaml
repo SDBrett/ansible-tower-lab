@@ -1,6 +1,21 @@
 region: "ap-southeast-2"
 state: present
 ansible_ssh_user: ec2-user
-postgres_user: psql_admin
-postgres_password: 1nsecure
-postgres_port: 5432
+
+postgres_rds_user: psql_admin
+postgres_rds_password: 1nsecure
+postgres_rds_port: 5432
+postgres_rds_id: tower
+postgres_rds_name: tower
+postgres_rds_size: db.t3.small
+
+vpc_subnets:
+- vpc_subnet_name: "tower-az1"
+  vpc_subnet_cidr: "10.10.0.0/24"
+  vpc_subnet_az: "ap-southeast-2a"
+- vpc_subnet_name: "tower-az2"
+  vpc_subnet_cidr: "10.10.1.0/24"
+  vpc_subnet_az: "ap-southeast-2b"
+- vpc_subnet_name: "tower-az3"
+  vpc_subnet_cidr: "10.10.2.0/24"
+  vpc_subnet_az: "ap-southeast-2c"

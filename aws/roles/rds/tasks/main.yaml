@@ -6,8 +6,9 @@
     state: "{{ state }}"
     name: "{{ db_subnet_group_name }}"
     subnets:
-      - "{{ tower_subnet.subnet.id }}"
-      - "{{ tower_subnet_two.subnet.id }}"
+      - "{{ tower_subnet.results[0].subnet.id }}"
+      - "{{ tower_subnet.results[1].subnet.id }}"
+      - "{{ tower_subnet.results[2].subnet.id }}"
   register: db_subnet_group
 
 - name: create postgres database
@@ -15,17 +16,18 @@
     profile: admin
     region: "{{ region }}"
     engine: postgres
-    db_instance_identifier: tower
-    db_name: tower
-    db_instance_class: db.t3.small
+    db_instance_identifier: "{{ postgres_rds_id }}"
+    db_name: "{{ postgres_rds_name }}"
+    db_instance_class: "{{ postgres_rds_size }}"
     allocated_storage: 20
     multi_az: yes
-    port: "{{ postgres_port }}"
+    port: "{{ postgres_rds_port }}"
     db_subnet_group_name: "{{ db_subnet_group.subnet_group.db_subnet_group_name }}"
-    master_user_password: "{{ postgres_password }}"
-    master_username: "{{ postgres_user }}"
+    master_user_password: "{{ postgres_rds_password }}"
+    master_username: "{{ postgres_rds_user }}"
     tags:
       app: tower
     validate_certs: no
     vpc_security_group_ids: "{{ sec_group.group_id }}"
     publicly_accessible: false
+    wait: no

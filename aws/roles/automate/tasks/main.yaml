@@ -11,5 +11,5 @@
         app: tower
       name: automate
       security_group: "{{ sec_group.group_id }}"
-      vpc_subnet_id: "{{ tower_subnet.subnet.id }}"
+      vpc_subnet_id: "{{ tower_subnet.results[0].subnet.id }}"
   register: automate

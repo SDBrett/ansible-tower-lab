@@ -11,6 +11,7 @@
 - name: create igw
   community.aws.ec2_vpc_igw:
     vpc_id: "{{ vpc.vpc.id }}"
+    region: "{{ region }}"
     state: "{{ state }}"
     tags:
       Name: tower-igw
@@ -20,24 +21,32 @@
 - name: Create subnet tower subnet
   amazon.aws.ec2_vpc_subnet:
     state: "{{ state }}"
+    region: "{{ region }}"
     vpc_id: "{{ vpc.vpc.id }}"
-    cidr: 10.10.0.0/24
-    az: ap-southeast-2a
+    cidr: "{{ item.vpc_subnet_cidr }}"
+    az: "{{ item.vpc_subnet_az }}"
+    map_public: yes
     tags:
-      Name: tower
+      Name: "{{ item.vpc_subnet_name }}"
       service: tower
   register: tower_subnet
+  with_items: "{{ vpc_subnets }}"
 
-- name: Create subnet 2 tower subnet
-  amazon.aws.ec2_vpc_subnet:
-    state: "{{ state }}"
+- name: Set up public subnet route table
+  community.aws.ec2_vpc_route_table:
     vpc_id: "{{ vpc.vpc.id }}"
-    cidr: 10.10.1.0/24
-    az: ap-southeast-2b
+    region: "{{ region }}"
     tags:
-      Name: tower-2c
+      Name: tower_rt
       service: tower
-  register: tower_subnet_two
+    subnets:
+      - "{{ tower_subnet.results[0].subnet.id }}"
+      - "{{ tower_subnet.results[1].subnet.id }}"
+      - "{{ tower_subnet.results[2].subnet.id }}"
+    routes:
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ igw.gateway_id }}"
+  register: public_route_table
 
 - name: create group
   amazon.aws.ec2_group:
@@ -60,4 +69,9 @@
         - 22
         cidr_ip: 0.0.0.0/0
         rule_desc: allow all ssh
+    rules_egress:
+      - proto: all
+        from_port: -1
+        to_port: -1
+        cidr_ip: 0.0.0.0/0
   register: sec_group

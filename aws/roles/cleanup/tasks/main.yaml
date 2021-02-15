@@ -5,11 +5,27 @@
       "tag:service": tower
   register: vpc_info
 
+## RDS Cleanup
+
+- name: Get information about an instance
+  community.aws.rds_instance_info:
+    db_instance_identifier: "{{ postgres_rds_id }}"
+    region: "{{ region }}"
+  register: database_info
+
+- name: remove the DB instance without a final snapshot
+  community.aws.rds_instance:
+    region: "{{ region }}"
+    id: "{{ database_info.instances[0].dbi_resource_id }}"
+    state: "{{ state }}"
+    wait: no
+    skip_final_snapshot: True
+
 ## EC2 cleanup
 - name: get ec2 facts
   ec2_instance_info:
     filters:
-     "tag:app": tower
+     "tag:app": "tower"
     region: "{{ region }}"
   register: ec2_info
 
@@ -27,6 +43,7 @@
   community.aws.ec2_vpc_igw:
     vpc_id: "{{ item.vpc_id }}"
     state: "{{ state }}"
+    region: "{{ region }}"
   with_items: "{{ vpc_info.vpcs }}"
 
 ## Subnet cleanup
